@@ -176,7 +176,7 @@ kbd{font:inherit;font-size:11px;min-width:22px;text-align:center;color:var(--tex
           <li><span><kbd>P</kbd></span> pause</li>
           <li><span><kbd>R</kbd></span> restart</li>
         </ul>
-        <p class="build">build <b id="bid">9e64d0b</b></p>
+        <p class="build">build <b id="bid">f77c221</b></p>
         <nav class="menu">
           <button id="ba" class="wide">Start</button>
           <button id="bb">Stats</button>
@@ -383,7 +383,7 @@ function setState(next){
   c.hidden=!v.third;if(v.third)text('bc',v.third);
 }
 function start(){
-  grid=new Array(C*R).fill(null);over=false;score=0;lines=0;speed=700;
+  grid=new Array(C*R).fill(null);over=false;score=0;lines=0;speed=1000;
   text('sc','0');text('ln','0');showMeta();spawn();draw();
   setState(over?'over':'playing');
 }
