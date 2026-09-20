@@ -72,8 +72,8 @@ button:disabled{opacity:.4;cursor:not-allowed;background:var(--surface);
   box-shadow:inset 0 0 60px rgba(0,0,0,.6),0 20px 60px rgba(0,0,0,.45)}
 #board div{aspect-ratio:1;border-radius:3px;background:rgba(255,255,255,.028)}
 #board div.on{box-shadow:inset 0 -3px 0 rgba(0,0,0,.35),inset 0 2px 0 rgba(255,255,255,.28)}
-#board div.lane{background:rgba(255,255,255,.055)}
-#board div.ghost{background:rgba(255,255,255,.05);opacity:.55}
+#board div.lane{background:rgba(255,255,255,.10)}
+#board div.ghost{background:rgba(255,255,255,.06);opacity:.85}
 #msg{display:flex;align-items:center;gap:9px;margin:0;color:var(--muted);font-size:14px;
   padding:10px 12px;background:var(--surface);border:1px solid var(--line);border-radius:var(--r)}
 #swatch{width:14px;height:14px;border-radius:3px;background:var(--line)}
@@ -288,7 +288,7 @@ function paint(i,t){var c=cells[i];
   else{c.style.background=COLORS[t];c.className='on';}}
 function ghost(i,t){var c=cells[i];
   if(c.className==='on')return;
-  c.className='ghost';c.style.boxShadow='inset 0 0 0 2px '+COLORS[t];}
+  c.className='ghost';c.style.boxShadow='inset 0 0 0 2px '+COLORS[t]+',0 0 10px -2px '+COLORS[t];}
 function lane(i){var c=cells[i];if(c.className)return;c.className='lane';}
 function landing(){var y=p.y;while(ok(at(p.t,p.r,p.x,y+1)))y++;return y;}
 function draw(){
