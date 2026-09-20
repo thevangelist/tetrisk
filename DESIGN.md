@@ -82,7 +82,18 @@ One `.game` flex row: HUD, playfield, controls. Breakpoints:
 - `>= 860px` — HUD and controls each `flex:1` capped at 300px, playfield centred at natural width,
   key legend appears. The page never scrolls in any of these.
 
-## 6. Game states
+## 6. Rotation
+
+SRS. Each piece lives in a fixed box — 4x4 for I, 2x2 for O, 3x3 for the rest — and rotates inside
+that box, so the position is the box origin and a rotation never re-centres the shape. The old
+normalise-to-bounding-box approach made pieces jump sideways as they turned. Wall kicks use the
+standard SRS tables (separate table for I, none for O), y-flipped for a downward grid, and are
+tried in order until one fits.
+
+The swap on every move/rotate keeps the rotation index and box origin, and falls back through the
+same kick offsets, so a swap can never place a piece inside the stack.
+
+## 7. Game states
 
 `menu` → `playing` ⇄ `paused` → `over`, plus `stats` reachable from menu/paused/over. Anything that
 is not `playing` blurs and desaturates the playfield, disables the four movement buttons and stops
@@ -90,13 +101,13 @@ the tick — the board underneath stays visible as context but is provably inert
 tap can never move a piece while a dialog is up. Stop ends the run and records it like a real game
 over; it is not a discard.
 
-## 7. Input
+## 8. Input
 
 Every action is a button; the keyboard and swipe gestures call `press(id)`, which flashes the
 button and invokes it. Arrows + WASD + space, R restart, P/Esc pause. On the playfield: swipe left/right to move,
 down to drop, tap to rotate.
 
-## 8. Accessibility
+## 9. Accessibility
 
 - All seven piece colours pass 3:1 against the playfield interior.
 - Colour is never the only channel: the readout names the piece letter.

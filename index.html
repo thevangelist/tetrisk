@@ -199,17 +199,31 @@ for(var i=0;i<C*R;i++){var d=document.createElement('div');board.appendChild(d);
 var NAMES=['I','O','T','S','Z','J','L'];
 var COLORS=['#31c7ef','#f7d308','#ad4d9c','#42b642','#ef2029','#5a65ad','#ef7921'];
 var INKS=['#1b8fae','#b89a05','#7b3470','#2c7d2c','#a9161c','#3c447a','#ad5413'];
+/* SRS: each piece lives in a fixed box (4x4 for I, 2x2 for O, 3x3 otherwise) and rotates
+   inside it, so the box origin is the piece position and rotation never re-centres the shape. */
+var BOX=[4,2,3,3,3,3,3];
 var BASE=[[[0,1],[1,1],[2,1],[3,1]],[[0,0],[1,0],[0,1],[1,1]],[[1,0],[0,1],[1,1],[2,1]],
           [[1,0],[2,0],[0,1],[1,1]],[[0,0],[1,0],[1,1],[2,1]],[[0,0],[0,1],[1,1],[2,1]],
           [[2,0],[0,1],[1,1],[2,1]]];
 var grid,p,over,timer,score,lines,speed;
 function idx(x,y){return y*C+x;}
-function norm(cs){var mx=Math.min.apply(null,cs.map(function(a){return a[0];})),
-  my=Math.min.apply(null,cs.map(function(a){return a[1];}));
-  return cs.map(function(a){return [a[0]-mx,a[1]-my];});}
-function shape(t,r){var cs=BASE[t];for(var i=0;i<((r%4)+4)%4;i++){
-  var mh=Math.max.apply(null,cs.map(function(a){return a[1];}));
-  cs=norm(cs.map(function(a){return [mh-a[1],a[0]];}));}return norm(cs);}
+function shape(t,r){var n=BOX[t]-1,cs=BASE[t];
+  for(var i=0;i<((r%4)+4)%4;i++)cs=cs.map(function(a){return [n-a[1],a[0]];});
+  return cs;}
+/* SRS wall kicks, y flipped because our grid grows downwards. */
+var KICK_JLSTZ=[[[0,0],[-1,0],[-1,-1],[0,2],[-1,2]],
+                [[0,0],[1,0],[1,1],[0,-2],[1,-2]],
+                [[0,0],[1,0],[1,-1],[0,2],[1,2]],
+                [[0,0],[-1,0],[-1,1],[0,-2],[-1,-2]]];
+var KICK_I=[[[0,0],[-2,0],[1,0],[-2,1],[1,-2]],
+            [[0,0],[-1,0],[2,0],[-1,-2],[2,1]],
+            [[0,0],[2,0],[-1,0],[2,-1],[-1,2]],
+            [[0,0],[1,0],[-2,0],[1,2],[-2,-1]]];
+function kicks(t,from,dir){
+  if(t===1)return [[0,0]];
+  var tbl=t===0?KICK_I:KICK_JLSTZ,i=dir>0?from:((from+3)%4);
+  return dir>0?tbl[i]:tbl[i].map(function(a){return [-a[0],-a[1]];});
+}
 function at(t,r,x,y){return shape(t,r).map(function(a){return [a[0]+x,a[1]+y];});}
 function ok(cs){for(var i=0;i<cs.length;i++){var x=cs[i][0],y=cs[i][1];
   if(x<0||x>=C||y<0||y>=R||grid[idx(x,y)])return false;}return true;}
@@ -217,20 +231,22 @@ function label(){
   document.getElementById('msgt').textContent=
     over?('Game over \u2014 '+score+' points'):('Piece: '+NAMES[p.t]);
   document.getElementById('swatch').style.background=over?'transparent':COLORS[p.t];}
-function spawn(){p={t:Math.floor(Math.random()*7),r:0,x:3,y:0};
+function spawn(){var t=Math.floor(Math.random()*7);
+  p={t:t,r:0,x:t===1?4:3,y:0};
   if(!ok(at(p.t,p.r,p.x,p.y))){over=true;clearInterval(timer);finish();}label();}
 function swap(){
   var o=[0,1,2,3,4,5,6].filter(function(t){return t!==p.t;});
   for(var i=o.length-1;i>0;i--){var j=Math.floor(Math.random()*(i+1)),tm=o[i];o[i]=o[j];o[j]=tm;}
-  var k=[[0,0],[-1,0],[1,0],[-2,0],[2,0],[0,-1]];
+  var k=[[0,0],[-1,0],[1,0],[-2,0],[2,0],[0,-1],[0,1]];
   for(var a=0;a<o.length;a++)for(var b=0;b<k.length;b++){
     var nx=p.x+k[b][0],ny=p.y+k[b][1];
     if(ok(at(o[a],p.r,nx,ny))){p.t=o[a];p.x=nx;p.y=ny;label();return;}}
 }
 function move(dx){if(over||state!=='playing')return;if(!ok(at(p.t,p.r,p.x+dx,p.y)))return;p.x+=dx;swap();draw();}
-function rot(dir){if(over||state!=='playing')return;var k=[0,-1,1,-2,2],d=dir||1;
-  for(var i=0;i<k.length;i++)if(ok(at(p.t,p.r+d,p.x+k[i],p.y))){
-    p.r=((p.r+d)%4+4)%4;p.x+=k[i];swap();draw();return;}}
+function rot(dir){if(over||state!=='playing')return;
+  var d=dir||1,nr=((p.r+d)%4+4)%4,k=kicks(p.t,p.r,d);
+  for(var i=0;i<k.length;i++){var nx=p.x+k[i][0],ny=p.y+k[i][1];
+    if(ok(at(p.t,nr,nx,ny))){p.r=nr;p.x=nx;p.y=ny;swap();draw();return;}}}
 function lock(){
   at(p.t,p.r,p.x,p.y).forEach(function(a){grid[idx(a[0],a[1])]=p.t;});
   var cl=0;
