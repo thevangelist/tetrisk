@@ -50,6 +50,9 @@ h1 span{color:var(--accent)}
 .over-title{margin:0;font-size:22px;font-weight:700;letter-spacing:-.01em}
 .over-score{margin:0;color:var(--muted);font-size:14px}
 .over-score b{color:var(--text);font-size:26px;font-weight:600;font-variant-numeric:tabular-nums}
+.build{margin:0;font-size:11px;letter-spacing:.08em;text-transform:uppercase;color:var(--muted)}
+.build b{font-weight:600;color:var(--text)}
+.stage:not(.screen) .build{display:none}
 .menu{display:flex;flex-direction:column;gap:8px;width:min(220px,100%);margin-top:4px}
 .help{list-style:none;margin:2px 0;padding:0;display:flex;flex-direction:column;gap:7px;
   width:min(260px,100%);color:var(--muted);font-size:14px}
@@ -173,6 +176,7 @@ kbd{font:inherit;font-size:11px;min-width:22px;text-align:center;color:var(--tex
           <li><span><kbd>P</kbd></span> pause</li>
           <li><span><kbd>R</kbd></span> restart</li>
         </ul>
+        <p class="build">build <b id="bid">9e64d0b</b></p>
         <nav class="menu">
           <button id="ba" class="wide">Start</button>
           <button id="bb">Stats</button>
