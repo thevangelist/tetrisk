@@ -107,7 +107,14 @@ Every action is a button; the keyboard and swipe gestures call `press(id)`, whic
 button and invokes it. Arrows + WASD + space, R restart, P/Esc pause. On the playfield: swipe left/right to move,
 down to drop, tap to rotate.
 
-## 9. Accessibility
+## 9. Sound
+
+Every effect is synthesised in Web Audio at call time — soft sine blobs, 0.02–0.035 gain, under
+150ms — so there are no audio files to ship, load or cache-bust. Muting is a first-class control
+(button + `M`), persisted in `tetrisk.muted`, and the whole module is wrapped in try/catch so a
+blocked or missing AudioContext silently degrades instead of breaking play.
+
+## 10. Accessibility
 
 - All seven piece colours pass 3:1 against the playfield interior.
 - Colour is never the only channel: the readout names the piece letter.

@@ -180,6 +180,7 @@ kbd{font:inherit;font-size:11px;min-width:22px;text-align:center;color:var(--tex
       <button id="bd">Hard drop<kbd>space</kbd></button>
       <button id="bp">Pause<kbd>P</kbd></button>
       <button id="bs2">Stop</button>
+      <button id="bm">Sound on</button>
       <button id="bn" class="wide">Restart<kbd>R</kbd></button>
     </div>
     <ul class="keys">
@@ -188,6 +189,7 @@ kbd{font:inherit;font-size:11px;min-width:22px;text-align:center;color:var(--tex
       <li><kbd>Z</kbd> rotate ccw</li>
       <li><kbd>&darr;</kbd> soft drop</li>
       <li><kbd>space</kbd> hard drop</li>
+      <li><kbd>M</kbd> mute</li>
     </ul>
   </div>
 </div>
@@ -242,11 +244,11 @@ function swap(){
     var nx=p.x+k[b][0],ny=p.y+k[b][1];
     if(ok(at(o[a],p.r,nx,ny))){p.t=o[a];p.x=nx;p.y=ny;label();return;}}
 }
-function move(dx){if(over||state!=='playing')return;if(!ok(at(p.t,p.r,p.x+dx,p.y)))return;p.x+=dx;swap();draw();}
+function move(dx){if(over||state!=='playing')return;if(!ok(at(p.t,p.r,p.x+dx,p.y)))return;p.x+=dx;swap();SFX.move();draw();}
 function rot(dir){if(over||state!=='playing')return;
   var d=dir||1,nr=((p.r+d)%4+4)%4,k=kicks(p.t,p.r,d);
   for(var i=0;i<k.length;i++){var nx=p.x+k[i][0],ny=p.y+k[i][1];
-    if(ok(at(p.t,nr,nx,ny))){p.r=nr;p.x=nx;p.y=ny;swap();draw();return;}}}
+    if(ok(at(p.t,nr,nx,ny))){p.r=nr;p.x=nx;p.y=ny;swap();SFX.rot();draw();return;}}}
 function lock(){
   at(p.t,p.r,p.x,p.y).forEach(function(a){grid[idx(a[0],a[1])]=p.t;});
   var cl=0;
@@ -255,17 +257,17 @@ function lock(){
     if(full){cl++;
       for(var yy=y;yy>0;yy--)for(var x2=0;x2<C;x2++)grid[idx(x2,yy)]=grid[idx(x2,yy-1)];
       for(var x3=0;x3<C;x3++)grid[idx(x3,0)]=null;y++;}}
-  if(cl){lines+=cl;score+=[0,100,300,600,1000][cl];
+  if(cl){SFX.line(cl);lines+=cl;score+=[0,100,300,600,1000][cl];
     document.getElementById('sc').textContent=score;
     document.getElementById('ln').textContent=lines;
     var ns=Math.max(160,700-Math.floor(lines/4)*60);
     if(ns!==speed){speed=ns;clearInterval(timer);timer=setInterval(tick,speed);}}
   spawn();
 }
-function step(){if(ok(at(p.t,p.r,p.x,p.y+1))){p.y++;return true;}lock();return false;}
+function step(){if(ok(at(p.t,p.r,p.x,p.y+1))){p.y++;return true;}SFX.lock();lock();return false;}
 function tick(){if(!over&&state==='playing'){step();draw();}}
-function drop(){if(over||state!=='playing')return;while(step()){}draw();}
-function soft(){if(over||state!=='playing')return;if(step())score++;
+function drop(){if(over||state!=='playing')return;SFX.drop();while(step()){}draw();}
+function soft(){if(over||state!=='playing')return;if(step()){score++;SFX.soft();}
   text('sc',score);draw();}
 function paint(i,t){var c=cells[i];
   if(t===null||t===undefined){c.style.background='';c.classList.remove('on');}
@@ -275,6 +277,37 @@ function draw(){
   if(!over)at(p.t,p.r,p.x,p.y).forEach(function(a){
     if(a[1]>=0)paint(idx(a[0],a[1]),p.t);});
 }
+
+/* Sounds are synthesised on the fly: no asset files, no load, nothing to cache-bust. */
+var actx,muted=(function(){try{return localStorage.getItem('tetrisk.muted')==='1';}catch(e){return false;}})();
+function beep(freq,dur,type,gain,slide){
+  if(muted)return;
+  try{
+    actx=actx||new (window.AudioContext||window.webkitAudioContext)();
+    if(actx.state==='suspended')actx.resume();
+    var t=actx.currentTime,o=actx.createOscillator(),g=actx.createGain();
+    o.type=type||'sine';o.frequency.setValueAtTime(freq,t);
+    if(slide)o.frequency.exponentialRampToValueAtTime(slide,t+dur);
+    g.gain.setValueAtTime(gain||0.05,t);
+    g.gain.exponentialRampToValueAtTime(0.0001,t+dur);
+    o.connect(g);g.connect(actx.destination);o.start(t);o.stop(t+dur+0.02);
+  }catch(e){}
+}
+/* Soft sine blobs, deliberately quiet: audible feedback, never a chiptune. */
+var SFX={
+  move:function(){beep(240,0.05,'sine',0.025,200);},
+  rot:function(){beep(380,0.07,'sine',0.028,460);},
+  soft:function(){beep(180,0.04,'sine',0.02,150);},
+  drop:function(){beep(300,0.14,'sine',0.035,110);},
+  lock:function(){beep(150,0.09,'sine',0.03,110);},
+  line:function(n){for(var i=0;i<n;i++)setTimeout(function(k){return function(){
+    beep(440+k*120,0.13,'sine',0.035,660+k*120);};}(i),i*80);},
+  over:function(){[300,240,180,120].forEach(function(f,i){
+    setTimeout(function(){beep(f,0.26,'sine',0.035,f*0.8);},i*150);});}
+};
+function setMuted(v){muted=v;try{localStorage.setItem('tetrisk.muted',v?'1':'0');}catch(e){}
+  var b=document.getElementById('bm');b.textContent=v?'Sound off':'Sound on';
+  b.setAttribute('aria-pressed',String(!v));}
 var BEST='tetrisk.best',GAMES='tetrisk.games',TLINES='tetrisk.lines',
     LAST='tetrisk.last',state='menu';
 function ls(k,v){try{if(v===undefined)return +(localStorage.getItem(k)||0);
@@ -284,7 +317,7 @@ function showMeta(){document.getElementById('bs').textContent=ls(BEST);
 function finish(){
   if(score>ls(BEST))ls(BEST,score);
   ls(GAMES,ls(GAMES)+1);ls(TLINES,ls(TLINES)+lines);ls(LAST,score);
-  showMeta();setState('over');}
+  showMeta();SFX.over();setState('over');}
 function text(id,v){document.getElementById(id).textContent=v;}
 function fillSummary(){text('s-best',ls(BEST));text('s-games',ls(GAMES));
   text('s-lines',ls(TLINES));text('s-last',ls(LAST));}
@@ -330,7 +363,7 @@ var BTN={bl:function(){move(-1);},br:function(){move(1);},
   bt:function(){rot(1);},bt2:function(){rot(-1);},bf:soft,bd:drop,bn:start,
   bp:pause,bs2:stop,
   ba:function(){if(state==='paused')setState('playing');else start();},
-  bb:toggleStats,
+  bb:toggleStats,bm:function(){setMuted(!muted);},
   bc:function(){setState(state==='help'?'menu':'help');}};
 function press(id){var b=document.getElementById(id);if(!b||b.disabled)return;
   b.classList.add('hit');setTimeout(function(){b.classList.remove('hit');},110);BTN[id]();}
@@ -350,7 +383,7 @@ board.addEventListener('touchend',function(e){
   if(Math.abs(dx)<24&&Math.abs(dy)<24)press('bt');
   else if(Math.abs(dx)>Math.abs(dy))press(dx>0?'br':'bl');
   else if(dy>0)press(Math.abs(dy)>90?'bd':'bf');},{passive:true});
-grid=new Array(C*R).fill(null);draw();showMeta();setState('menu');
+grid=new Array(C*R).fill(null);draw();showMeta();setMuted(muted);setState('menu');
 })();
 </script>
 </body>
