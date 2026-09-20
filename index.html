@@ -26,7 +26,7 @@ h1{font-size:clamp(22px,2.6vw,32px);font-weight:700;letter-spacing:-.02em;margin
 h1 span{color:var(--accent)}
 .sub{margin:0;color:var(--muted);font-size:14px;max-width:34ch}
 .panel,.stat{background:var(--surface);border:1px solid var(--line);border-radius:var(--r)}
-.game{display:flex;flex-direction:column;gap:14px;width:min(360px,100%);flex:1;min-height:0}
+.game{display:flex;flex-direction:column;gap:14px;width:min(360px,100%);height:100%;flex:1;min-height:0}
 .hud,.side{display:flex;flex-direction:column;gap:12px;min-height:0}
 .statwrap{display:flex;flex-direction:column;gap:10px}
 .stats{display:grid;grid-template-columns:1fr 1fr;gap:10px}
@@ -34,12 +34,14 @@ h1 span{color:var(--accent)}
 .stat span{display:block;font-size:11px;letter-spacing:.09em;text-transform:uppercase;color:var(--muted)}
 .stat b{font-size:22px;font-weight:600;font-variant-numeric:tabular-nums}
 .well{flex:1;min-height:0;min-width:0;display:flex;justify-content:center;align-items:center}
-.stage{position:relative;height:100%;min-width:0;display:flex;justify-content:center}
+.stage{position:relative;min-width:0;display:flex;justify-content:center}
 #board{transition:filter .25s,opacity .25s}
 .stage.ended #board{filter:blur(2px) saturate(.5);opacity:.4;pointer-events:none}
 .overlay{position:absolute;inset:0;display:flex;flex-direction:column;
-  align-items:center;justify-content:center;gap:10px;text-align:center;padding:20px;
+  align-items:center;gap:10px;text-align:center;padding:20px;overflow:auto;
   background:rgba(9,11,17,.55);border-radius:12px;backdrop-filter:blur(1px)}
+.overlay>:first-child{margin-top:auto}
+.overlay>:last-child{margin-bottom:auto}
 .stage.screen #board{visibility:hidden}
 .stage.screen .overlay{background:var(--surface);border:1px solid var(--line);
   backdrop-filter:none;box-shadow:0 20px 60px rgba(0,0,0,.45);gap:14px}
@@ -59,6 +61,7 @@ h1 span{color:var(--accent)}
   width:min(260px,100%);color:var(--muted);font-size:14px}
 .help[hidden]{display:none}
 .help li{display:flex;align-items:center;gap:10px}
+.help .touch{display:none}
 .help span{display:flex;gap:4px;min-width:92px;justify-content:flex-start}
 .overlay button{width:100%;grid-column:auto}
 .summary{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin:6px 0 2px;
@@ -71,7 +74,7 @@ h1 span{color:var(--accent)}
 button:disabled{opacity:.4;cursor:not-allowed;background:var(--surface);
   border-color:var(--line);transform:none}
 #board{touch-action:none;display:grid;grid-template-columns:repeat(10,1fr);gap:2px;padding:10px;
-  aspect-ratio:10/16;height:100%;max-height:100%;max-width:100%;flex:0 0 auto;
+  flex:0 0 auto;
   background:#090b11;border:1px solid var(--line);border-radius:12px;
   box-shadow:inset 0 0 60px rgba(0,0,0,.6),0 20px 60px rgba(0,0,0,.45)}
 #board div{aspect-ratio:1;border-radius:3px;background:rgba(255,255,255,.028)}
@@ -83,21 +86,6 @@ button:disabled{opacity:.4;cursor:not-allowed;background:var(--surface);
 #swatch{width:14px;height:14px;border-radius:3px;background:var(--line)}
 .pad{display:grid;grid-template-columns:1fr 1fr;gap:10px}
 .ico{display:none;font-size:22px;line-height:1}
-@media (max-width:859px){
-  /* thumb layout: rotates on top, a move row, hard drop as the wide primary */
-  .pad{grid-template-columns:repeat(3,1fr);gap:8px;
-    grid-template-areas:"ccw hd cw" "l sd r" "p st rs" "snd snd snd"}
-  #bl{grid-area:l}#br{grid-area:r}#bt{grid-area:cw}#bt2{grid-area:ccw}
-  #bf{grid-area:sd}#bd{grid-area:hd}#bp{grid-area:p}#bs2{grid-area:st}
-  #bm{grid-area:snd}#bn{grid-area:rs}
-  .pad .lbl,.pad kbd{display:none}
-  .pad .ico{display:block}
-  #bl,#br,#bt,#bt2,#bf,#bd{height:64px;font-size:15px}
-  #bp,#bs2,#bn{height:40px;font-size:14px}
-  #bm{height:44px}
-  #bm .lbl,#bm span{display:inline}
-  .keys{display:none}
-}
 button{touch-action:manipulation;-webkit-user-select:none;user-select:none;
   font:inherit;font-weight:500;height:46px;display:flex;align-items:center;
   justify-content:center;gap:8px;color:var(--text);background:var(--surface-2);
@@ -127,39 +115,52 @@ button kbd{opacity:.65;pointer-events:none}
 kbd{font:inherit;font-size:11px;min-width:22px;text-align:center;color:var(--text);
   background:var(--surface-2);border:1px solid var(--line);border-bottom-width:2px;
   border-radius:4px;padding:2px 6px}
-@media (max-width:859px){
+@media (max-width:859px),(max-height:560px){
   body{padding:10px 10px 12px}
-  .game{gap:10px}
-  .hud{gap:8px}
+  .game{gap:10px;position:relative}
+  .hud{display:grid;grid-template-columns:auto 1fr;grid-auto-flow:dense;align-items:center;
+    align-content:center;gap:8px}
   .hud .sub{display:none}
   h1{font-size:20px}
-  .statwrap{display:grid;grid-template-columns:repeat(4,1fr);gap:6px}
+  .statwrap{grid-column:1/-1;display:grid;grid-template-columns:repeat(4,1fr);gap:6px}
   .stats{display:contents}
   .stat{padding:5px 8px}
   .stat span{font-size:9px;letter-spacing:.06em}
   .stat b{font-size:16px}
-  #msg{padding:6px 10px;font-size:13px}
+  #msg{justify-self:end;margin-right:84px;padding:0;border:0;background:none;font-size:13px;
+    white-space:nowrap;overflow:hidden}
+  /* the menu needs the well's width, the board alone is too narrow for it */
+  .stage{position:static}
+  .well{position:relative}
+  body:not([data-state=menu]) :is(.screen-sub,.build){display:none}
+  /* thumb pad: six move buttons while playing, the rest take their place when paused */
+  .pad{grid-template-columns:repeat(3,1fr);grid-template-rows:64px 64px;gap:8px;
+    grid-template-areas:"ccw hd cw" "l sd r"}
+  #bl{grid-area:l}#br{grid-area:r}#bt{grid-area:cw}#bt2{grid-area:ccw}#bf{grid-area:sd}#bd{grid-area:hd}
+  #bs2{grid-area:ccw}#bm{grid-area:2/1/3/4}
+  #bn{grid-area:1/2/2/4;background:var(--surface-2);border-color:var(--line);color:var(--text)}
+  #bp{position:absolute;top:0;right:0;width:76px;height:30px;font-size:13px}
+  .pad button{height:auto}
+  .pad .lbl,.pad kbd{display:none}
+  .pad .ico{display:block}
+  .pad button:disabled,body[data-state=playing] :is(#bs2,#bm),
+    body:not([data-state=paused]) #bn{display:none}
+}
+@media (pointer:coarse){
+  .help li{display:none}
+  .help .touch{display:flex}
 }
 @media (orientation:landscape) and (max-height:560px){
   body{padding:10px}.game{flex-direction:row;width:100%;gap:12px}
-  .well{flex:0 0 auto}.hud,.side{flex:1;justify-content:center}
+  .hud,.side{flex:1;justify-content:center}
   h1,.sub{display:none}button{height:38px}
 }
-@media (min-width:860px){
-  /* board sized from both axes so neither the columns nor the viewport height can squash it */
-  body{padding:28px;
-    --colw:clamp(240px,22vw,300px);--gap:clamp(20px,3vw,44px);
-    --availw:calc(100vw - 2*var(--colw) - 2*var(--gap) - 56px);
-    --availh:calc(100dvh - 56px);
-    --cell:min((var(--availw) - 40px)/10,(var(--availh) - 52px)/16)}
+@media (min-width:860px) and (min-height:561px){
+  body{padding:28px}
   .game{flex-direction:row;align-items:center;justify-content:center;
-    width:100%;max-width:1160px;height:100%;gap:clamp(20px,3vw,44px)}
-  .game{gap:var(--gap)}
-  .hud,.side{flex:0 0 var(--colw);justify-content:center;gap:14px}
-  .well{flex:1 1 auto;height:100%;align-items:center}
-  .stage{height:auto;align-items:center}
-  #board{height:calc(16*var(--cell) + 52px);width:calc(10*var(--cell) + 40px);
-    max-height:none;aspect-ratio:auto}
+    width:100%;max-width:1160px;gap:clamp(20px,3vw,44px)}
+  .hud,.side{flex:0 0 clamp(240px,22vw,300px);justify-content:center;gap:14px}
+  .well{height:100%}
   .keys{display:flex;flex-direction:column}
   .stat{padding:12px 14px}
   .stat b{font-size:26px}
@@ -198,6 +199,9 @@ kbd{font:inherit;font-size:11px;min-width:22px;text-align:center;color:var(--tex
           <div><dt>Last score</dt><dd id="s-last">0</dd></div>
         </dl>
         <ul class="help" id="help" hidden>
+          <li class="touch"><span>swipe &larr; &rarr;</span> move</li>
+          <li class="touch"><span>swipe &darr;</span> soft drop, long for hard</li>
+          <li class="touch"><span>tap board</span> rotate</li>
           <li><span><kbd>&larr;</kbd><kbd>&rarr;</kbd></span> move</li>
           <li><span><kbd>&uarr;</kbd><kbd>X</kbd></span> rotate cw</li>
           <li><span><kbd>Z</kbd></span> rotate ccw</li>
@@ -206,7 +210,7 @@ kbd{font:inherit;font-size:11px;min-width:22px;text-align:center;color:var(--tex
           <li><span><kbd>P</kbd></span> pause</li>
           <li><span><kbd>R</kbd></span> restart</li>
         </ul>
-        <p class="build">build <b id="bid">caedb8b</b></p>
+        <p class="build">build <b id="bid">c50cfc9</b></p>
         <nav class="menu">
           <button id="ba" class="wide">Start</button>
           <button id="bb">Stats</button>
@@ -391,15 +395,16 @@ var VIEW={
   over:{title:'Game over',score:true,action:'Play again',alt:'Stats'}
 };
 function setState(next){
-  state=next;
-  var live=(state==='playing'),v=VIEW[state],stage=document.querySelector('.stage');
+  state=next;document.body.dataset.state=state;
+  var live=(state==='playing'),run=live||state==='paused',v=VIEW[state],
+      stage=document.querySelector('.stage');
   stage.classList.toggle('ended',!live);
   stage.classList.toggle('screen',!live&&state!=='paused');
   document.getElementById('over').hidden=live;
   ['bl','br','bt','bt2','bf','bd'].forEach(function(id){document.getElementById(id).disabled=!live;});
-  document.getElementById('bp').disabled=(state!=='playing'&&state!=='paused');
+  document.getElementById('bp').disabled=!run;
   document.getElementById('bp').textContent=(state==='paused'?'Resume':'Pause');
-  document.getElementById('bs2').disabled=!live;
+  document.getElementById('bs2').disabled=!run;
   if(live){clearInterval(timer);timer=setInterval(tick,speed);label();return;}
   clearInterval(timer);
   document.getElementById('ot').innerHTML=v.title;
@@ -414,18 +419,15 @@ function setState(next){
 }
 /* The board is sized from the measured well, not from viewport math: mobile chrome heights
    and dynamic toolbars make a pure CSS aspect-ratio fit unreliable. */
+var well=document.querySelector('.well');
 function fit(){
-  var w=document.querySelector('.well'),b=document.getElementById('board');
-  if(!w||!b)return;
-  var r=w.getBoundingClientRect(),pad=20,gapW=9*2,gapH=15*2;
+  var r=well.getBoundingClientRect(),pad=22,gapW=9*2,gapH=15*2;
   var cell=Math.floor(Math.min((r.width-pad-gapW)/C,(r.height-pad-gapH)/R));
   if(!isFinite(cell)||cell<4)return;
-  b.style.width=(cell*C+pad+gapW)+'px';
-  b.style.height=(cell*R+pad+gapH)+'px';
+  board.style.width=(cell*C+pad+gapW)+'px';
+  board.style.height=(cell*R+pad+gapH)+'px';
 }
-window.addEventListener('resize',fit);
-window.addEventListener('load',function(){fit();requestAnimationFrame(fit);});
-window.addEventListener('orientationchange',function(){setTimeout(fit,120);});
+new ResizeObserver(fit).observe(well);
 function start(){
   grid=new Array(C*R).fill(null);over=false;score=0;lines=0;speed=1000;
   text('sc','0');text('ln','0');showMeta();spawn();draw();
@@ -433,7 +435,7 @@ function start(){
 }
 function pause(){if(state==='playing')setState('paused');
   else if(state==='paused')setState('playing');}
-function stop(){if(state!=='playing')return;clearInterval(timer);over=true;finish();}
+function stop(){if(state!=='playing'&&state!=='paused')return;clearInterval(timer);over=true;finish();}
 function toggleStats(){setState(state==='stats'?'menu':'stats');}
 var BTN={bl:function(){move(-1);},br:function(){move(1);},
   bt:function(){rot(1);},bt2:function(){rot(-1);},bf:soft,bd:drop,bn:start,
@@ -459,7 +461,7 @@ board.addEventListener('touchend',function(e){
   if(Math.abs(dx)<24&&Math.abs(dy)<24)press('bt');
   else if(Math.abs(dx)>Math.abs(dy))press(dx>0?'br':'bl');
   else if(dy>0)press(Math.abs(dy)>90?'bd':'bf');},{passive:true});
-grid=new Array(C*R).fill(null);draw();showMeta();setMuted(muted);setState('menu');fit();
+grid=new Array(C*R).fill(null);draw();showMeta();setMuted(muted);setState('menu');
 })();
 </script>
 </body>

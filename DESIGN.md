@@ -56,8 +56,8 @@ at 55% opacity. The lane answers "which columns" at a glance, the ghost answers 
 neither adds a colour to the palette, so the preview can never be mistaken for locked blocks.
 
 **Playfield** — 10x16 grid, 2px gap, near-black interior, inset vignette and a single lifted
-drop shadow. `aspect-ratio:10/16` with `height:100%` so it fills the viewport height and never
-scrolls; the layout gives it whatever height is left and the width follows.
+drop shadow. `fit()` is the only sizing mechanism: a `ResizeObserver` on `.well` picks the largest
+whole-pixel cell that fits both axes and sets the board's width and height, so it never scrolls.
 
 **Stat tile** — uppercase micro-label over a 22px tabular number. Four tiles: Score, Lines, Best,
 Games. Persisted keys: `tetrisk.best`, `tetrisk.games`, `tetrisk.lines`, `tetrisk.last`, written on
@@ -81,11 +81,16 @@ core signal, not decoration, and the letter is always there as the second channe
 
 One `.game` flex row: HUD, playfield, controls. Breakpoints:
 
-- `< 860px` — stacked column, playfield takes the free height.
-- `<= 700px` tall and narrow — hide the tagline, shrink stats and buttons.
-- landscape `<= 560px` tall — three columns, title hidden, 38px buttons.
-- `>= 860px` — HUD and controls each `flex:1` capped at 300px, playfield centred at natural width,
-  key legend appears. The page never scrolls in any of these.
+- `< 860px` wide or `<= 560px` tall — phone layout. Stacked column, playfield takes the free
+  height. Title, piece readout and Pause share one row; stats are 4-up. The pad is two 64px rows:
+  the six move buttons while playing, Stop / Restart / Sound in their place when paused, so the
+  pad height (and the board) never changes between states. The overlay anchors to the well, not
+  the board, so menus get the full width.
+- landscape `<= 560px` tall — the phone layout as three equal columns, title hidden.
+- otherwise — HUD and controls capped at 300px, playfield centred, key legend appears.
+
+`.game` must have a definite height in every layout: the well is `flex:1` and `fit()` measures it.
+The page never scrolls in any of these.
 
 ## 6. Rotation
 
@@ -112,14 +117,16 @@ silently skipped any row containing an I cell. Every occupancy check goes throug
 `menu` → `playing` ⇄ `paused` → `over`, plus `stats` reachable from menu/paused/over. Anything that
 is not `playing` blurs and desaturates the playfield, disables the four movement buttons and stops
 the tick — the board underneath stays visible as context but is provably inert, so a stray key or
-tap can never move a piece while a dialog is up. Stop ends the run and records it like a real game
-over; it is not a discard.
+tap can never move a piece while a dialog is up. Stop works while playing or paused, ends the run
+and records it like a real game over; it is not a discard. `body[data-state]` mirrors the state
+for CSS.
 
 ## 9. Input
 
 Every action is a button; the keyboard and swipe gestures call `press(id)`, which flashes the
 button and invokes it. Arrows + WASD + space, R restart, P/Esc pause. On the playfield: swipe left/right to move,
-down to drop, tap to rotate.
+down to drop, tap to rotate. On `pointer:coarse` devices How to play lists these gestures instead of
+the keys.
 
 ## 10. Sound
 
