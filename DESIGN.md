@@ -1,4 +1,4 @@
-# Sketchtris — design system
+# Tetrisk — design system
 
 Sleek dark product UI, canonical Tetris colour. The chrome is quiet enterprise-grade surface work —
 flat panels, one accent, tabular numerals. The playfield is the only saturated thing on screen.
@@ -55,8 +55,12 @@ drop shadow. `aspect-ratio:10/16` with `height:100%` so it fills the viewport he
 scrolls; the layout gives it whatever height is left and the width follows.
 
 **Stat tile** — uppercase micro-label over a 22px tabular number. Four tiles: Score, Lines, Best,
-Games. Best and Games persist in `localStorage` (`sketchtris.best`, `sketchtris.games`), written
-on game over inside a try/catch, so private mode degrades to zeroes instead of throwing.
+Games. Persisted keys: `tetrisk.best`, `tetrisk.games`, `tetrisk.lines`, `tetrisk.last`, written on
+game over inside a try/catch, so private mode degrades to zeroes instead of throwing.
+
+**Overlay** — one element renders every non-playing state from a `VIEW` table (menu, stats, paused,
+over): title, optional final score, optional stats grid, a primary action and an alternate. One
+overlay rather than four screens, so a new state costs a table row.
 
 **Button** — 46px, `--surface-2` fill, hover lightens fill and border together, active darkens
 and drops 1px. The `.hit` class replays that active state for 110ms, so keyboard and swipe input
@@ -78,13 +82,21 @@ One `.game` flex row: HUD, playfield, controls. Breakpoints:
 - `>= 860px` — HUD and controls each `flex:1` capped at 300px, playfield centred at natural width,
   key legend appears. The page never scrolls in any of these.
 
-## 6. Input
+## 6. Game states
+
+`menu` → `playing` ⇄ `paused` → `over`, plus `stats` reachable from menu/paused/over. Anything that
+is not `playing` blurs and desaturates the playfield, disables the four movement buttons and stops
+the tick — the board underneath stays visible as context but is provably inert, so a stray key or
+tap can never move a piece while a dialog is up. Stop ends the run and records it like a real game
+over; it is not a discard.
+
+## 7. Input
 
 Every action is a button; the keyboard and swipe gestures call `press(id)`, which flashes the
-button and invokes it. Arrows + WASD + space + R. On the playfield: swipe left/right to move,
+button and invokes it. Arrows + WASD + space, R restart, P/Esc pause. On the playfield: swipe left/right to move,
 down to drop, tap to rotate.
 
-## 7. Accessibility
+## 8. Accessibility
 
 - All seven piece colours pass 3:1 against the playfield interior.
 - Colour is never the only channel: the readout names the piece letter.
