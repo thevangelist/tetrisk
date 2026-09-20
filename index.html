@@ -76,7 +76,8 @@ button:disabled{opacity:.4;cursor:not-allowed;background:var(--surface);
   padding:10px 12px;background:var(--surface);border:1px solid var(--line);border-radius:var(--r)}
 #swatch{width:14px;height:14px;border-radius:3px;background:var(--line)}
 .pad{display:grid;grid-template-columns:1fr 1fr;gap:10px}
-button{font:inherit;font-weight:500;height:46px;color:var(--text);background:var(--surface-2);
+button{font:inherit;font-weight:500;height:46px;display:flex;align-items:center;
+  justify-content:center;gap:8px;color:var(--text);background:var(--surface-2);
   border:1px solid var(--line);border-radius:var(--r-sm);cursor:pointer;
   transition:background .12s,border-color .12s,transform .06s;
   -webkit-tap-highlight-color:transparent}
@@ -89,6 +90,8 @@ button:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
 .keys{display:none;list-style:none;margin:0;padding:12px;gap:8px;color:var(--muted);font-size:13px;
   background:var(--surface);border:1px solid var(--line);border-radius:var(--r)}
 .keys li{display:flex;align-items:center;gap:8px}
+button kbd{opacity:.65;pointer-events:none}
+.wide kbd{color:#04222c;background:rgba(4,34,44,.12);border-color:rgba(4,34,44,.25)}
 kbd{font:inherit;font-size:11px;min-width:22px;text-align:center;color:var(--text);
   background:var(--surface-2);border:1px solid var(--line);border-bottom-width:2px;
   border-radius:4px;padding:2px 6px}
@@ -167,13 +170,13 @@ kbd{font:inherit;font-size:11px;min-width:22px;text-align:center;color:var(--tex
   </div>
   <div class="side">
     <div class="pad">
-      <button id="bl">&larr; Left</button>
-      <button id="br">Right &rarr;</button>
-      <button id="bt">Rotate</button>
-      <button id="bd">Drop</button>
-      <button id="bp">Pause</button>
+      <button id="bl">Left<kbd>&larr;</kbd></button>
+      <button id="br">Right<kbd>&rarr;</kbd></button>
+      <button id="bt">Rotate<kbd>&uarr;</kbd></button>
+      <button id="bd">Drop<kbd>space</kbd></button>
+      <button id="bp">Pause<kbd>P</kbd></button>
       <button id="bs2">Stop</button>
-      <button id="bn" class="wide">Restart</button>
+      <button id="bn" class="wide">Restart<kbd>R</kbd></button>
     </div>
     <ul class="keys">
       <li><kbd>&larr;</kbd><kbd>&rarr;</kbd> move</li>
