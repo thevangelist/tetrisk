@@ -1,71 +1,114 @@
 <!DOCTYPE html>
-<html lang="fi">
+<html lang="en">
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
 <title>Sketchtris</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Patrick+Hand&family=Gloria+Hallelujah&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
 <style>
 :root{
-  --paper:#eef2f5;--rule:#c9d8e4;--ink:#1f3a5f;--faint:#6b819a;--eraser:#dfe6ec;
+  --bg:#0b0d12;--surface:#141822;--surface-2:#1b2030;--line:#252b3b;
+  --text:#e6eaf2;--muted:#8a93a8;--accent:#31c7ef;
+  --I:#31c7ef;--O:#f7d308;--T:#ad4d9c;--S:#42b642;--Z:#ef2029;--J:#5a65ad;--L:#ef7921;
+  --r:8px;--r-sm:5px;
 }
 *{box-sizing:border-box}
-body{margin:0;min-height:100vh;color:var(--ink);
-  font:16px/1.55 "Patrick Hand","Segoe Print","Bradley Hand",cursive;
-  background:
-    repeating-linear-gradient(to bottom,transparent 0 27px,var(--rule) 27px 28px),
-    repeating-linear-gradient(to right,transparent 0 27px,var(--rule) 27px 28px),
-    var(--paper);
-  display:flex;flex-direction:column;align-items:center;padding:26px 16px 44px}
-h1{font-family:"Gloria Hallelujah","Patrick Hand",cursive;font-size:30px;margin:0;
-  transform:rotate(-1.4deg)}
-.sub{margin:6px 0 20px;max-width:32ch;text-align:center;color:var(--faint);
-  transform:rotate(.4deg)}
-.wrap{width:min(340px,100%)}
-.box{border:2px solid var(--ink);border-radius:255px 14px 225px 16px/16px 220px 14px 255px;
-  background:rgba(255,255,255,.55)}
-.stats{display:flex;gap:10px;margin-bottom:12px}
-.stat{flex:1;padding:6px 14px}
-.stat:nth-child(2){transform:rotate(.8deg)}
-.stat:first-child{transform:rotate(-.6deg)}
-.stat span{display:block;font-size:14px;color:var(--faint)}
-.stat b{font-size:26px;font-weight:400}
-#board{display:grid;grid-template-columns:repeat(10,1fr);gap:3px;padding:8px}
-#board div{aspect-ratio:1;border:2px solid transparent;
-  border-radius:225px 15px 255px 15px/15px 255px 15px 225px}
-#board div.on{border-color:var(--ink)}
-#board div:nth-child(3n){border-radius:255px 15px 225px 15px/15px 225px 15px 255px}
-#board div:nth-child(4n){border-radius:15px 225px 15px 255px/255px 15px 225px 15px}
-#msg{text-align:center;color:var(--faint);margin:10px 0 0;min-height:22px}
-.pad{display:grid;grid-template-columns:1fr 1fr;gap:9px;margin-top:12px}
-button{font:inherit;font-size:17px;height:50px;color:var(--ink);background:rgba(255,255,255,.55);
-  border:2px solid var(--ink);cursor:pointer;-webkit-tap-highlight-color:transparent;
-  border-radius:255px 14px 225px 16px/16px 220px 14px 255px}
-button:nth-child(even){border-radius:14px 255px 16px 225px/220px 16px 255px 14px}
-button:active{background:var(--eraser);transform:translateY(1px)}
-button:focus-visible{outline:2px dashed var(--ink);outline-offset:3px}
-.wide{grid-column:1/-1;height:44px;color:var(--faint)}
+html,body{height:100%}
+body{margin:0;overflow:hidden;color:var(--text);
+  background:radial-gradient(1200px 700px at 50% -10%,#151b2a 0%,var(--bg) 60%);
+  font:15px/1.5 Inter,-apple-system,BlinkMacSystemFont,"Segoe UI",system-ui,sans-serif;
+  -webkit-font-smoothing:antialiased;
+  display:flex;align-items:center;justify-content:center;padding:20px}
+h1{font-size:clamp(22px,2.6vw,32px);font-weight:700;letter-spacing:-.02em;margin:0}
+h1 span{color:var(--accent)}
+.sub{margin:0;color:var(--muted);font-size:14px;max-width:34ch}
+.panel,.stat{background:var(--surface);border:1px solid var(--line);border-radius:var(--r)}
+.game{display:flex;flex-direction:column;gap:14px;width:min(360px,100%);flex:1;min-height:0}
+.hud,.side{display:flex;flex-direction:column;gap:12px;min-height:0}
+.stats{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.stat{padding:10px 12px}
+.stat span{display:block;font-size:11px;letter-spacing:.09em;text-transform:uppercase;color:var(--muted)}
+.stat b{font-size:22px;font-weight:600;font-variant-numeric:tabular-nums}
+.well{flex:1;min-height:0;display:flex;justify-content:center}
+#board{display:grid;grid-template-columns:repeat(10,1fr);gap:2px;padding:10px;
+  aspect-ratio:10/16;height:100%;max-height:100%;
+  background:#090b11;border:1px solid var(--line);border-radius:12px;
+  box-shadow:inset 0 0 60px rgba(0,0,0,.6),0 20px 60px rgba(0,0,0,.45)}
+#board div{aspect-ratio:1;border-radius:3px;background:rgba(255,255,255,.028)}
+#board div.on{box-shadow:inset 0 -3px 0 rgba(0,0,0,.35),inset 0 2px 0 rgba(255,255,255,.28)}
+#msg{display:flex;align-items:center;gap:9px;margin:0;color:var(--muted);font-size:14px;
+  padding:10px 12px;background:var(--surface);border:1px solid var(--line);border-radius:var(--r)}
+#swatch{width:14px;height:14px;border-radius:3px;background:var(--line)}
+.pad{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+button{font:inherit;font-weight:500;height:46px;color:var(--text);background:var(--surface-2);
+  border:1px solid var(--line);border-radius:var(--r-sm);cursor:pointer;
+  transition:background .12s,border-color .12s,transform .06s;
+  -webkit-tap-highlight-color:transparent}
+button:hover{background:#232a3d;border-color:#31384d}
+button.hit,button:active{background:#2b3348;transform:translateY(1px)}
+button:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+.wide{grid-column:1/-1;height:42px;background:var(--accent);border-color:var(--accent);
+  color:#04222c;font-weight:600}
+.wide:hover{background:#4ed3f5;border-color:#4ed3f5}
+.keys{display:none;list-style:none;margin:0;padding:12px;gap:8px;color:var(--muted);font-size:13px;
+  background:var(--surface);border:1px solid var(--line);border-radius:var(--r)}
+.keys li{display:flex;align-items:center;gap:8px}
+kbd{font:inherit;font-size:11px;min-width:22px;text-align:center;color:var(--text);
+  background:var(--surface-2);border:1px solid var(--line);border-bottom-width:2px;
+  border-radius:4px;padding:2px 6px}
+@media (max-height:700px) and (max-width:859px){
+  .sub{display:none}.stat b{font-size:18px}button{height:42px}
+}
+@media (orientation:landscape) and (max-height:560px){
+  body{padding:10px}.game{flex-direction:row;width:100%;gap:12px}
+  .well{flex:0 0 auto}.hud,.side{flex:1;justify-content:center}
+  h1,.sub{display:none}button{height:38px}
+}
+@media (min-width:860px){
+  body{padding:28px}
+  .game{flex-direction:row;align-items:center;justify-content:center;
+    width:100%;max-width:1160px;height:100%;gap:clamp(20px,3vw,44px)}
+  .hud,.side{flex:0 0 clamp(240px,22vw,300px);justify-content:center;gap:14px}
+  .well{flex:0 1 auto;height:100%;align-items:center}
+  #board{max-height:min(100%,86vh)}
+  .keys{display:flex;flex-direction:column}
+  .stat{padding:12px 14px}
+  .stat b{font-size:26px}
+  .hud h1{margin-bottom:2px}
+}
 </style>
 </head>
 <body>
-<h1>Sketchtris</h1>
-<p class="sub">Tavallinen Tetris, paitsi että jokainen siirto ja kierto vaihtaa palan toiseksi. Putoaminen ei vaihda.</p>
-
-<div class="wrap">
-  <div class="stats">
-    <div class="stat box"><span>Pisteet</span><b id="sc">0</b></div>
-    <div class="stat box"><span>Rivit</span><b id="ln">0</b></div>
-  </div>
-  <div id="board" class="box" aria-label="Pelilauta"></div>
-  <p id="msg">Pala: —</p>
-  <div class="pad">
-    <button id="bl">&larr; Vasen</button>
-    <button id="br">Oikea &rarr;</button>
-    <button id="bt">Kierrä</button>
-    <button id="bd">Pudota</button>
-    <button id="bn" class="wide">Uusi peli</button>
+<div class="game">
+  <aside class="hud">
+    <h1>Sketch<span>tris</span></h1>
+    <p class="sub">Ordinary Tetris, except every move and rotation swaps your piece for another one. Dropping doesn't.</p>
+    <div class="stats">
+      <div class="stat box"><span>Score</span><b id="sc">0</b></div>
+      <div class="stat box"><span>Lines</span><b id="ln">0</b></div>
+    </div>
+    <div class="stats">
+      <div class="stat box"><span>Best</span><b id="bs">0</b></div>
+      <div class="stat box"><span>Games</span><b id="gp">0</b></div>
+    </div>
+    <p id="msg"><i id="swatch"></i><span id="msgt">Piece: &mdash;</span></p>
+  </aside>
+  <div class="well"><div id="board" class="box" aria-label="Playfield"></div></div>
+  <div class="side">
+    <div class="pad">
+      <button id="bl">&larr; Left</button>
+      <button id="br">Right &rarr;</button>
+      <button id="bt">Rotate</button>
+      <button id="bd">Drop</button>
+      <button id="bn" class="wide">New game</button>
+    </div>
+    <ul class="keys">
+      <li><kbd>&larr;</kbd><kbd>&rarr;</kbd> move</li>
+      <li><kbd>&uarr;</kbd> rotate</li>
+      <li><kbd>space</kbd> drop</li>
+    </ul>
   </div>
 </div>
 
@@ -74,7 +117,8 @@ button:focus-visible{outline:2px dashed var(--ink);outline-offset:3px}
 var C=10,R=16,board=document.getElementById('board'),cells=[];
 for(var i=0;i<C*R;i++){var d=document.createElement('div');board.appendChild(d);cells.push(d);}
 var NAMES=['I','O','T','S','Z','J','L'];
-var COLORS=['#9fc6e8','#f3cf8e','#bdb6ea','#a8d8b9','#efb3c6','#a8b0e0','#f0b79a'];
+var COLORS=['#31c7ef','#f7d308','#ad4d9c','#42b642','#ef2029','#5a65ad','#ef7921'];
+var INKS=['#1b8fae','#b89a05','#7b3470','#2c7d2c','#a9161c','#3c447a','#ad5413'];
 var BASE=[[[0,1],[1,1],[2,1],[3,1]],[[0,0],[1,0],[0,1],[1,1]],[[1,0],[0,1],[1,1],[2,1]],
           [[1,0],[2,0],[0,1],[1,1]],[[0,0],[1,0],[1,1],[2,1]],[[0,0],[0,1],[1,1],[2,1]],
           [[2,0],[0,1],[1,1],[2,1]]];
@@ -89,10 +133,12 @@ function shape(t,r){var cs=BASE[t];for(var i=0;i<((r%4)+4)%4;i++){
 function at(t,r,x,y){return shape(t,r).map(function(a){return [a[0]+x,a[1]+y];});}
 function ok(cs){for(var i=0;i<cs.length;i++){var x=cs[i][0],y=cs[i][1];
   if(x<0||x>=C||y<0||y>=R||grid[idx(x,y)])return false;}return true;}
-function label(){document.getElementById('msg').textContent=
-  over?('Peli päättyi — '+score+' pistettä'):('Pala: '+NAMES[p.t]);}
+function label(){
+  document.getElementById('msgt').textContent=
+    over?('Game over \u2014 '+score+' points'):('Piece: '+NAMES[p.t]);
+  document.getElementById('swatch').style.background=over?'transparent':COLORS[p.t];}
 function spawn(){p={t:Math.floor(Math.random()*7),r:0,x:3,y:0};
-  if(!ok(at(p.t,p.r,p.x,p.y))){over=true;clearInterval(timer);}label();}
+  if(!ok(at(p.t,p.r,p.x,p.y))){over=true;clearInterval(timer);finish();}label();}
 function swap(){
   var o=[0,1,2,3,4,5,6].filter(function(t){return t!==p.t;});
   for(var i=o.length-1;i>0;i--){var j=Math.floor(Math.random()*(i+1)),tm=o[i];o[i]=o[j];o[j]=tm;}
@@ -106,7 +152,7 @@ function rot(){if(over)return;var k=[0,-1,1,-2,2];
   for(var i=0;i<k.length;i++)if(ok(at(p.t,p.r+1,p.x+k[i],p.y))){
     p.r=(p.r+1)%4;p.x+=k[i];swap();draw();return;}}
 function lock(){
-  at(p.t,p.r,p.x,p.y).forEach(function(a){grid[idx(a[0],a[1])]=COLORS[p.t];});
+  at(p.t,p.r,p.x,p.y).forEach(function(a){grid[idx(a[0],a[1])]=p.t;});
   var cl=0;
   for(var y=R-1;y>=0;y--){var full=true;
     for(var x=0;x<C;x++)if(!grid[idx(x,y)])full=false;
@@ -123,30 +169,43 @@ function lock(){
 function step(){if(ok(at(p.t,p.r,p.x,p.y+1))){p.y++;return true;}lock();return false;}
 function tick(){if(!over){step();draw();}}
 function drop(){if(over)return;while(step()){}draw();}
-function paint(i,col){var c=cells[i];
-  if(col){c.style.background=col;c.classList.add('on');}
-  else{c.style.background='transparent';c.classList.remove('on');}}
+function paint(i,t){var c=cells[i];
+  if(t===null||t===undefined){c.style.background='';c.classList.remove('on');}
+  else{c.style.background=COLORS[t];c.classList.add('on');}}
 function draw(){
   for(var i=0;i<C*R;i++)paint(i,grid[i]);
   if(!over)at(p.t,p.r,p.x,p.y).forEach(function(a){
-    if(a[1]>=0)paint(idx(a[0],a[1]),COLORS[p.t]);});
+    if(a[1]>=0)paint(idx(a[0],a[1]),p.t);});
 }
+var BEST='sketchtris.best',GAMES='sketchtris.games';
+function ls(k,v){try{if(v===undefined)return +(localStorage.getItem(k)||0);
+  localStorage.setItem(k,v);}catch(e){}return v||0;}
+function showMeta(){document.getElementById('bs').textContent=ls(BEST);
+  document.getElementById('gp').textContent=ls(GAMES);}
+function finish(){if(score>ls(BEST))ls(BEST,score);ls(GAMES,ls(GAMES)+1);showMeta();}
 function start(){
   grid=new Array(C*R).fill(null);over=false;score=0;lines=0;speed=700;
   document.getElementById('sc').textContent='0';document.getElementById('ln').textContent='0';
-  clearInterval(timer);timer=setInterval(tick,speed);spawn();draw();
+  clearInterval(timer);timer=setInterval(tick,speed);showMeta();spawn();draw();
 }
-document.getElementById('bl').onclick=function(){move(-1);};
-document.getElementById('br').onclick=function(){move(1);};
-document.getElementById('bt').onclick=rot;
-document.getElementById('bd').onclick=drop;
-document.getElementById('bn').onclick=start;
+var BTN={bl:function(){move(-1);},br:function(){move(1);},bt:rot,bd:drop,bn:start};
+function press(id){var b=document.getElementById(id);if(!b)return;
+  b.classList.add('hit');setTimeout(function(){b.classList.remove('hit');},110);BTN[id]();}
+Object.keys(BTN).forEach(function(id){
+  document.getElementById(id).addEventListener('click',function(){press(id);});});
+var KEYS={ArrowLeft:'bl',a:'bl',ArrowRight:'br',d:'br',ArrowUp:'bt',w:'bt',x:'bt',
+  ' ':'bd',ArrowDown:'bd',s:'bd',r:'bn'};
 document.addEventListener('keydown',function(e){
-  if(e.key==='ArrowLeft')move(-1);
-  else if(e.key==='ArrowRight')move(1);
-  else if(e.key==='ArrowUp')rot();
-  else if(e.key===' '||e.key==='ArrowDown'){e.preventDefault();drop();}
-});
+  var id=KEYS[e.key]||KEYS[e.key.toLowerCase()];
+  if(!id)return;e.preventDefault();press(id);});
+var tx,ty;
+board.addEventListener('touchstart',function(e){
+  tx=e.changedTouches[0].clientX;ty=e.changedTouches[0].clientY;},{passive:true});
+board.addEventListener('touchend',function(e){
+  var dx=e.changedTouches[0].clientX-tx,dy=e.changedTouches[0].clientY-ty;
+  if(Math.abs(dx)<24&&Math.abs(dy)<24)press('bt');
+  else if(Math.abs(dx)>Math.abs(dy))press(dx>0?'br':'bl');
+  else if(dy>0)press('bd');},{passive:true});
 start();
 })();
 </script>
