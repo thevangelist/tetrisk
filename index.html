@@ -50,9 +50,6 @@ h1 span{color:var(--accent)}
 .over-title{margin:0;font-size:22px;font-weight:700;letter-spacing:-.01em}
 .over-score{margin:0;color:var(--muted);font-size:14px}
 .over-score b{color:var(--text);font-size:26px;font-weight:600;font-variant-numeric:tabular-nums}
-.mode{font-weight:500}
-.stage:not(.screen) #modehint{display:none}
-#modehint{min-height:20px}
 .menu{display:flex;flex-direction:column;gap:8px;width:min(220px,100%);margin-top:4px}
 .help{list-style:none;margin:2px 0;padding:0;display:flex;flex-direction:column;gap:7px;
   width:min(260px,100%);color:var(--muted);font-size:14px}
@@ -175,9 +172,7 @@ kbd{font:inherit;font-size:11px;min-width:22px;text-align:center;color:var(--tex
           <li><span><kbd>P</kbd></span> pause</li>
           <li><span><kbd>R</kbd></span> restart</li>
         </ul>
-        <p class="screen-sub" id="modehint"></p>
         <nav class="menu">
-          <button id="bd2" class="mode">Rotate only</button>
           <button id="ba" class="wide">Start</button>
           <button id="bb">Stats</button>
           <button id="bc">How to play</button>
@@ -261,11 +256,11 @@ function swap(){
     var nx=p.x+k[b][0],ny=p.y+k[b][1];
     if(ok(at(o[a],p.r,nx,ny))){p.t=o[a];p.x=nx;p.y=ny;label();return;}}
 }
-function move(dx){if(over||state!=='playing')return;if(!ok(at(p.t,p.r,p.x+dx,p.y)))return;p.x+=dx;if(mode==='chaos')swap();SFX.move();draw();}
+function move(dx){if(over||state!=='playing')return;if(!ok(at(p.t,p.r,p.x+dx,p.y)))return;p.x+=dx;swap();SFX.move();draw();}
 function rot(dir){if(over||state!=='playing')return;
   var d=dir||1,nr=((p.r+d)%4+4)%4,k=kicks(p.t,p.r,d);
   for(var i=0;i<k.length;i++){var nx=p.x+k[i][0],ny=p.y+k[i][1];
-    if(ok(at(p.t,nr,nx,ny))){p.r=nr;p.x=nx;p.y=ny;if(mode!=='plain')swap();SFX.rot();draw();return;}}}
+    if(ok(at(p.t,nr,nx,ny))){p.r=nr;p.x=nx;p.y=ny;swap();SFX.rot();draw();return;}}}
 function lock(){
   at(p.t,p.r,p.x,p.y).forEach(function(a){grid[idx(a[0],a[1])]=p.t;});
   var cl=0;
@@ -335,17 +330,6 @@ var SFX={
 };
 function setMuted(v){muted=v;try{localStorage.setItem('tetrisk.muted',v?'1':'0');}catch(e){}
   document.getElementById('bm').setAttribute('aria-pressed',String(!v));}
-var MODES=[
-  {id:'rotate',name:'Rotate only',hint:'Piece swaps when you rotate. Moving is safe.'},
-  {id:'chaos',name:'Full chaos',hint:'Every move and rotation swaps the piece.'},
-  {id:'plain',name:'Plain Tetris',hint:'No swapping at all.'}];
-var mode=(function(){try{var m=localStorage.getItem('tetrisk.mode');
-  return MODES.some(function(x){return x.id===m;})?m:'rotate';}catch(e){return 'rotate';}})();
-function setMode(id){mode=id;try{localStorage.setItem('tetrisk.mode',id);}catch(e){}
-  var m=MODES.filter(function(x){return x.id===id;})[0];
-  text('bd2',m.name);text('modehint',m.hint);}
-function cycleMode(){var i=0;MODES.forEach(function(m,j){if(m.id===mode)i=j;});
-  setMode(MODES[(i+1)%MODES.length].id);}
 var BEST='tetrisk.best',GAMES='tetrisk.games',TLINES='tetrisk.lines',
     LAST='tetrisk.last',state='menu';
 function ls(k,v){try{if(v===undefined)return +(localStorage.getItem(k)||0);
@@ -387,8 +371,6 @@ function setState(next){
   text('ba',v.action);text('bb',v.alt);
   var c=document.getElementById('bc');
   c.hidden=!v.third;if(v.third)text('bc',v.third);
-  document.getElementById('bd2').hidden=(state!=='menu');
-  document.getElementById('modehint').hidden=(state!=='menu');
 }
 function start(){
   grid=new Array(C*R).fill(null);over=false;score=0;lines=0;speed=700;
@@ -403,7 +385,7 @@ var BTN={bl:function(){move(-1);},br:function(){move(1);},
   bt:function(){rot(1);},bt2:function(){rot(-1);},bf:soft,bd:drop,bn:start,
   bp:pause,bs2:stop,
   ba:function(){if(state==='paused')setState('playing');else start();},
-  bb:toggleStats,bd2:cycleMode,bm:function(){setMuted(!muted);},
+  bb:toggleStats,bm:function(){setMuted(!muted);},
   bc:function(){setState(state==='help'?'menu':'help');}};
 function press(id){var b=document.getElementById(id);if(!b||b.disabled)return;
   b.classList.add('hit');setTimeout(function(){b.classList.remove('hit');},110);BTN[id]();}
@@ -423,7 +405,7 @@ board.addEventListener('touchend',function(e){
   if(Math.abs(dx)<24&&Math.abs(dy)<24)press('bt');
   else if(Math.abs(dx)>Math.abs(dy))press(dx>0?'br':'bl');
   else if(dy>0)press(Math.abs(dy)>90?'bd':'bf');},{passive:true});
-grid=new Array(C*R).fill(null);draw();showMeta();setMuted(muted);setMode(mode);setState('menu');
+grid=new Array(C*R).fill(null);draw();showMeta();setMuted(muted);setState('menu');
 })();
 </script>
 </body>

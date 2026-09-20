@@ -98,20 +98,7 @@ tried in order until one fits.
 The swap on every move/rotate keeps the rotation index and box origin, and falls back through the
 same kick offsets, so a swap can never place a piece inside the stack.
 
-## 7. Modes
-
-Swapping on *every* move makes the piece impossible to place deliberately — the twist eats the game
-under it. So the swap trigger is a menu setting, persisted in `tetrisk.mode`:
-
-- **Rotate only** (default) — swap on rotation, moving is safe. The twist stays a real decision:
-  you may not turn a piece for free.
-- **Full chaos** — swap on every move and rotation.
-- **Plain Tetris** — no swapping.
-
-The mode button cycles and carries a one-line hint, so the difference is readable without a
-settings screen.
-
-## 8. Game states
+## 7. Game states
 
 `menu` → `playing` ⇄ `paused` → `over`, plus `stats` reachable from menu/paused/over. Anything that
 is not `playing` blurs and desaturates the playfield, disables the four movement buttons and stops
@@ -119,20 +106,20 @@ the tick — the board underneath stays visible as context but is provably inert
 tap can never move a piece while a dialog is up. Stop ends the run and records it like a real game
 over; it is not a discard.
 
-## 9. Input
+## 8. Input
 
 Every action is a button; the keyboard and swipe gestures call `press(id)`, which flashes the
 button and invokes it. Arrows + WASD + space, R restart, P/Esc pause. On the playfield: swipe left/right to move,
 down to drop, tap to rotate.
 
-## 10. Sound
+## 9. Sound
 
 Every effect is synthesised in Web Audio at call time — soft sine blobs, 0.02–0.035 gain, under
 150ms — so there are no audio files to ship, load or cache-bust. Muting is a first-class control
 (button + `M`), persisted in `tetrisk.muted`, and the whole module is wrapped in try/catch so a
 blocked or missing AudioContext silently degrades instead of breaking play.
 
-## 11. Accessibility
+## 10. Accessibility
 
 - All seven piece colours pass 3:1 against the playfield interior.
 - Colour is never the only channel: the readout names the piece letter.
