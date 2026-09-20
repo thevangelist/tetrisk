@@ -1,0 +1,154 @@
+<!DOCTYPE html>
+<html lang="fi">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>Sketchtris</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Patrick+Hand&family=Gloria+Hallelujah&display=swap" rel="stylesheet">
+<style>
+:root{
+  --paper:#eef2f5;--rule:#c9d8e4;--ink:#1f3a5f;--faint:#6b819a;--eraser:#dfe6ec;
+}
+*{box-sizing:border-box}
+body{margin:0;min-height:100vh;color:var(--ink);
+  font:16px/1.55 "Patrick Hand","Segoe Print","Bradley Hand",cursive;
+  background:
+    repeating-linear-gradient(to bottom,transparent 0 27px,var(--rule) 27px 28px),
+    repeating-linear-gradient(to right,transparent 0 27px,var(--rule) 27px 28px),
+    var(--paper);
+  display:flex;flex-direction:column;align-items:center;padding:26px 16px 44px}
+h1{font-family:"Gloria Hallelujah","Patrick Hand",cursive;font-size:30px;margin:0;
+  transform:rotate(-1.4deg)}
+.sub{margin:6px 0 20px;max-width:32ch;text-align:center;color:var(--faint);
+  transform:rotate(.4deg)}
+.wrap{width:min(340px,100%)}
+.box{border:2px solid var(--ink);border-radius:255px 14px 225px 16px/16px 220px 14px 255px;
+  background:rgba(255,255,255,.55)}
+.stats{display:flex;gap:10px;margin-bottom:12px}
+.stat{flex:1;padding:6px 14px}
+.stat:nth-child(2){transform:rotate(.8deg)}
+.stat:first-child{transform:rotate(-.6deg)}
+.stat span{display:block;font-size:14px;color:var(--faint)}
+.stat b{font-size:26px;font-weight:400}
+#board{display:grid;grid-template-columns:repeat(10,1fr);gap:3px;padding:8px}
+#board div{aspect-ratio:1;border:2px solid transparent;
+  border-radius:225px 15px 255px 15px/15px 255px 15px 225px}
+#board div.on{border-color:var(--ink)}
+#board div:nth-child(3n){border-radius:255px 15px 225px 15px/15px 225px 15px 255px}
+#board div:nth-child(4n){border-radius:15px 225px 15px 255px/255px 15px 225px 15px}
+#msg{text-align:center;color:var(--faint);margin:10px 0 0;min-height:22px}
+.pad{display:grid;grid-template-columns:1fr 1fr;gap:9px;margin-top:12px}
+button{font:inherit;font-size:17px;height:50px;color:var(--ink);background:rgba(255,255,255,.55);
+  border:2px solid var(--ink);cursor:pointer;-webkit-tap-highlight-color:transparent;
+  border-radius:255px 14px 225px 16px/16px 220px 14px 255px}
+button:nth-child(even){border-radius:14px 255px 16px 225px/220px 16px 255px 14px}
+button:active{background:var(--eraser);transform:translateY(1px)}
+button:focus-visible{outline:2px dashed var(--ink);outline-offset:3px}
+.wide{grid-column:1/-1;height:44px;color:var(--faint)}
+</style>
+</head>
+<body>
+<h1>Sketchtris</h1>
+<p class="sub">Tavallinen Tetris, paitsi että jokainen siirto ja kierto vaihtaa palan toiseksi. Putoaminen ei vaihda.</p>
+
+<div class="wrap">
+  <div class="stats">
+    <div class="stat box"><span>Pisteet</span><b id="sc">0</b></div>
+    <div class="stat box"><span>Rivit</span><b id="ln">0</b></div>
+  </div>
+  <div id="board" class="box" aria-label="Pelilauta"></div>
+  <p id="msg">Pala: —</p>
+  <div class="pad">
+    <button id="bl">&larr; Vasen</button>
+    <button id="br">Oikea &rarr;</button>
+    <button id="bt">Kierrä</button>
+    <button id="bd">Pudota</button>
+    <button id="bn" class="wide">Uusi peli</button>
+  </div>
+</div>
+
+<script>
+(function(){
+var C=10,R=16,board=document.getElementById('board'),cells=[];
+for(var i=0;i<C*R;i++){var d=document.createElement('div');board.appendChild(d);cells.push(d);}
+var NAMES=['I','O','T','S','Z','J','L'];
+var COLORS=['#9fc6e8','#f3cf8e','#bdb6ea','#a8d8b9','#efb3c6','#a8b0e0','#f0b79a'];
+var BASE=[[[0,1],[1,1],[2,1],[3,1]],[[0,0],[1,0],[0,1],[1,1]],[[1,0],[0,1],[1,1],[2,1]],
+          [[1,0],[2,0],[0,1],[1,1]],[[0,0],[1,0],[1,1],[2,1]],[[0,0],[0,1],[1,1],[2,1]],
+          [[2,0],[0,1],[1,1],[2,1]]];
+var grid,p,over,timer,score,lines,speed;
+function idx(x,y){return y*C+x;}
+function norm(cs){var mx=Math.min.apply(null,cs.map(function(a){return a[0];})),
+  my=Math.min.apply(null,cs.map(function(a){return a[1];}));
+  return cs.map(function(a){return [a[0]-mx,a[1]-my];});}
+function shape(t,r){var cs=BASE[t];for(var i=0;i<((r%4)+4)%4;i++){
+  var mh=Math.max.apply(null,cs.map(function(a){return a[1];}));
+  cs=norm(cs.map(function(a){return [mh-a[1],a[0]];}));}return norm(cs);}
+function at(t,r,x,y){return shape(t,r).map(function(a){return [a[0]+x,a[1]+y];});}
+function ok(cs){for(var i=0;i<cs.length;i++){var x=cs[i][0],y=cs[i][1];
+  if(x<0||x>=C||y<0||y>=R||grid[idx(x,y)])return false;}return true;}
+function label(){document.getElementById('msg').textContent=
+  over?('Peli päättyi — '+score+' pistettä'):('Pala: '+NAMES[p.t]);}
+function spawn(){p={t:Math.floor(Math.random()*7),r:0,x:3,y:0};
+  if(!ok(at(p.t,p.r,p.x,p.y))){over=true;clearInterval(timer);}label();}
+function swap(){
+  var o=[0,1,2,3,4,5,6].filter(function(t){return t!==p.t;});
+  for(var i=o.length-1;i>0;i--){var j=Math.floor(Math.random()*(i+1)),tm=o[i];o[i]=o[j];o[j]=tm;}
+  var k=[[0,0],[-1,0],[1,0],[-2,0],[2,0],[0,-1]];
+  for(var a=0;a<o.length;a++)for(var b=0;b<k.length;b++){
+    var nx=p.x+k[b][0],ny=p.y+k[b][1];
+    if(ok(at(o[a],p.r,nx,ny))){p.t=o[a];p.x=nx;p.y=ny;label();return;}}
+}
+function move(dx){if(over)return;if(!ok(at(p.t,p.r,p.x+dx,p.y)))return;p.x+=dx;swap();draw();}
+function rot(){if(over)return;var k=[0,-1,1,-2,2];
+  for(var i=0;i<k.length;i++)if(ok(at(p.t,p.r+1,p.x+k[i],p.y))){
+    p.r=(p.r+1)%4;p.x+=k[i];swap();draw();return;}}
+function lock(){
+  at(p.t,p.r,p.x,p.y).forEach(function(a){grid[idx(a[0],a[1])]=COLORS[p.t];});
+  var cl=0;
+  for(var y=R-1;y>=0;y--){var full=true;
+    for(var x=0;x<C;x++)if(!grid[idx(x,y)])full=false;
+    if(full){cl++;
+      for(var yy=y;yy>0;yy--)for(var x2=0;x2<C;x2++)grid[idx(x2,yy)]=grid[idx(x2,yy-1)];
+      for(var x3=0;x3<C;x3++)grid[idx(x3,0)]=null;y++;}}
+  if(cl){lines+=cl;score+=[0,100,300,600,1000][cl];
+    document.getElementById('sc').textContent=score;
+    document.getElementById('ln').textContent=lines;
+    var ns=Math.max(160,700-Math.floor(lines/4)*60);
+    if(ns!==speed){speed=ns;clearInterval(timer);timer=setInterval(tick,speed);}}
+  spawn();
+}
+function step(){if(ok(at(p.t,p.r,p.x,p.y+1))){p.y++;return true;}lock();return false;}
+function tick(){if(!over){step();draw();}}
+function drop(){if(over)return;while(step()){}draw();}
+function paint(i,col){var c=cells[i];
+  if(col){c.style.background=col;c.classList.add('on');}
+  else{c.style.background='transparent';c.classList.remove('on');}}
+function draw(){
+  for(var i=0;i<C*R;i++)paint(i,grid[i]);
+  if(!over)at(p.t,p.r,p.x,p.y).forEach(function(a){
+    if(a[1]>=0)paint(idx(a[0],a[1]),COLORS[p.t]);});
+}
+function start(){
+  grid=new Array(C*R).fill(null);over=false;score=0;lines=0;speed=700;
+  document.getElementById('sc').textContent='0';document.getElementById('ln').textContent='0';
+  clearInterval(timer);timer=setInterval(tick,speed);spawn();draw();
+}
+document.getElementById('bl').onclick=function(){move(-1);};
+document.getElementById('br').onclick=function(){move(1);};
+document.getElementById('bt').onclick=rot;
+document.getElementById('bd').onclick=drop;
+document.getElementById('bn').onclick=start;
+document.addEventListener('keydown',function(e){
+  if(e.key==='ArrowLeft')move(-1);
+  else if(e.key==='ArrowRight')move(1);
+  else if(e.key==='ArrowUp')rot();
+  else if(e.key===' '||e.key==='ArrowDown'){e.preventDefault();drop();}
+});
+start();
+})();
+</script>
+</body>
+</html>
