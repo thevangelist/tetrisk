@@ -155,8 +155,10 @@ kbd{font:inherit;font-size:11px;min-width:22px;text-align:center;color:var(--tex
         </dl>
         <ul class="help" id="help" hidden>
           <li><span><kbd>&larr;</kbd><kbd>&rarr;</kbd></span> move</li>
-          <li><span><kbd>&uarr;</kbd></span> rotate</li>
-          <li><span><kbd>space</kbd></span> drop</li>
+          <li><span><kbd>&uarr;</kbd><kbd>X</kbd></span> rotate cw</li>
+          <li><span><kbd>Z</kbd></span> rotate ccw</li>
+          <li><span><kbd>&darr;</kbd></span> soft drop</li>
+          <li><span><kbd>space</kbd></span> hard drop</li>
           <li><span><kbd>P</kbd></span> pause</li>
           <li><span><kbd>R</kbd></span> restart</li>
         </ul>
@@ -173,15 +175,19 @@ kbd{font:inherit;font-size:11px;min-width:22px;text-align:center;color:var(--tex
       <button id="bl">Left<kbd>&larr;</kbd></button>
       <button id="br">Right<kbd>&rarr;</kbd></button>
       <button id="bt">Rotate<kbd>&uarr;</kbd></button>
-      <button id="bd">Drop<kbd>space</kbd></button>
+      <button id="bt2">Rotate ccw<kbd>Z</kbd></button>
+      <button id="bf">Soft drop<kbd>&darr;</kbd></button>
+      <button id="bd">Hard drop<kbd>space</kbd></button>
       <button id="bp">Pause<kbd>P</kbd></button>
       <button id="bs2">Stop</button>
       <button id="bn" class="wide">Restart<kbd>R</kbd></button>
     </div>
     <ul class="keys">
       <li><kbd>&larr;</kbd><kbd>&rarr;</kbd> move</li>
-      <li><kbd>&uarr;</kbd> rotate</li>
-      <li><kbd>space</kbd> drop</li>
+      <li><kbd>&uarr;</kbd><kbd>X</kbd> rotate cw</li>
+      <li><kbd>Z</kbd> rotate ccw</li>
+      <li><kbd>&darr;</kbd> soft drop</li>
+      <li><kbd>space</kbd> hard drop</li>
     </ul>
   </div>
 </div>
@@ -222,9 +228,9 @@ function swap(){
     if(ok(at(o[a],p.r,nx,ny))){p.t=o[a];p.x=nx;p.y=ny;label();return;}}
 }
 function move(dx){if(over||state!=='playing')return;if(!ok(at(p.t,p.r,p.x+dx,p.y)))return;p.x+=dx;swap();draw();}
-function rot(){if(over||state!=='playing')return;var k=[0,-1,1,-2,2];
-  for(var i=0;i<k.length;i++)if(ok(at(p.t,p.r+1,p.x+k[i],p.y))){
-    p.r=(p.r+1)%4;p.x+=k[i];swap();draw();return;}}
+function rot(dir){if(over||state!=='playing')return;var k=[0,-1,1,-2,2],d=dir||1;
+  for(var i=0;i<k.length;i++)if(ok(at(p.t,p.r+d,p.x+k[i],p.y))){
+    p.r=((p.r+d)%4+4)%4;p.x+=k[i];swap();draw();return;}}
 function lock(){
   at(p.t,p.r,p.x,p.y).forEach(function(a){grid[idx(a[0],a[1])]=p.t;});
   var cl=0;
@@ -243,6 +249,8 @@ function lock(){
 function step(){if(ok(at(p.t,p.r,p.x,p.y+1))){p.y++;return true;}lock();return false;}
 function tick(){if(!over&&state==='playing'){step();draw();}}
 function drop(){if(over||state!=='playing')return;while(step()){}draw();}
+function soft(){if(over||state!=='playing')return;if(step())score++;
+  text('sc',score);draw();}
 function paint(i,t){var c=cells[i];
   if(t===null||t===undefined){c.style.background='';c.classList.remove('on');}
   else{c.style.background=COLORS[t];c.classList.add('on');}}
@@ -277,7 +285,7 @@ function setState(next){
   stage.classList.toggle('ended',!live);
   stage.classList.toggle('screen',!live&&state!=='paused');
   document.getElementById('over').hidden=live;
-  ['bl','br','bt','bd'].forEach(function(id){document.getElementById(id).disabled=!live;});
+  ['bl','br','bt','bt2','bf','bd'].forEach(function(id){document.getElementById(id).disabled=!live;});
   document.getElementById('bp').disabled=(state!=='playing'&&state!=='paused');
   document.getElementById('bp').textContent=(state==='paused'?'Resume':'Pause');
   document.getElementById('bs2').disabled=!live;
@@ -302,7 +310,8 @@ function pause(){if(state==='playing')setState('paused');
   else if(state==='paused')setState('playing');}
 function stop(){if(state!=='playing')return;clearInterval(timer);over=true;finish();}
 function toggleStats(){setState(state==='stats'?'menu':'stats');}
-var BTN={bl:function(){move(-1);},br:function(){move(1);},bt:rot,bd:drop,bn:start,
+var BTN={bl:function(){move(-1);},br:function(){move(1);},
+  bt:function(){rot(1);},bt2:function(){rot(-1);},bf:soft,bd:drop,bn:start,
   bp:pause,bs2:stop,
   ba:function(){if(state==='paused')setState('playing');else start();},
   bb:toggleStats,
@@ -313,7 +322,7 @@ Object.keys(BTN).forEach(function(id){
   document.getElementById(id).addEventListener('click',function(){press(id);});});
 
 var KEYS={ArrowLeft:'bl',a:'bl',ArrowRight:'br',d:'br',ArrowUp:'bt',w:'bt',x:'bt',
-  ' ':'bd',ArrowDown:'bd',s:'bd',r:'bn',p:'bp',Escape:'bp'};
+  z:'bt2',Control:'bt2',ArrowDown:'bf',s:'bf',' ':'bd',r:'bn',p:'bp',Escape:'bp',F1:'bp'};
 document.addEventListener('keydown',function(e){
   var id=KEYS[e.key]||KEYS[e.key.toLowerCase()];
   if(!id)return;e.preventDefault();press(id);});
@@ -324,7 +333,7 @@ board.addEventListener('touchend',function(e){
   var dx=e.changedTouches[0].clientX-tx,dy=e.changedTouches[0].clientY-ty;
   if(Math.abs(dx)<24&&Math.abs(dy)<24)press('bt');
   else if(Math.abs(dx)>Math.abs(dy))press(dx>0?'br':'bl');
-  else if(dy>0)press('bd');},{passive:true});
+  else if(dy>0)press(Math.abs(dy)>90?'bd':'bf');},{passive:true});
 grid=new Array(C*R).fill(null);draw();showMeta();setState('menu');
 })();
 </script>
