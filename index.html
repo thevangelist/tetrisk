@@ -83,13 +83,13 @@ button:disabled{opacity:.4;cursor:not-allowed;background:var(--surface);
 #swatch{width:14px;height:14px;border-radius:3px;background:var(--line)}
 .pad{display:grid;grid-template-columns:1fr 1fr;gap:10px}
 .ico{display:none;font-size:22px;line-height:1}
-#bl{grid-area:l}#br{grid-area:r}#bt{grid-area:cw}#bt2{grid-area:ccw}
-#bf{grid-area:sd}#bd{grid-area:hd}#bp{grid-area:p}#bs2{grid-area:st}
-#bm{grid-area:snd}#bn{grid-area:rs}
 @media (max-width:859px){
   /* thumb layout: rotates on top, a move row, hard drop as the wide primary */
   .pad{grid-template-columns:repeat(3,1fr);gap:8px;
     grid-template-areas:"ccw hd cw" "l sd r" "p st rs" "snd snd snd"}
+  #bl{grid-area:l}#br{grid-area:r}#bt{grid-area:cw}#bt2{grid-area:ccw}
+  #bf{grid-area:sd}#bd{grid-area:hd}#bp{grid-area:p}#bs2{grid-area:st}
+  #bm{grid-area:snd}#bn{grid-area:rs}
   .pad .lbl,.pad kbd{display:none}
   .pad .ico{display:block}
   #bl,#br,#bt,#bt2,#bf,#bd{height:64px;font-size:15px}
@@ -206,7 +206,7 @@ kbd{font:inherit;font-size:11px;min-width:22px;text-align:center;color:var(--tex
           <li><span><kbd>P</kbd></span> pause</li>
           <li><span><kbd>R</kbd></span> restart</li>
         </ul>
-        <p class="build">build <b id="bid">25aacec</b></p>
+        <p class="build">build <b id="bid">a921304</b></p>
         <nav class="menu">
           <button id="ba" class="wide">Start</button>
           <button id="bb">Stats</button>
