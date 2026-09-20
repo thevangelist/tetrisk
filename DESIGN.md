@@ -50,6 +50,11 @@ playfield loses figure/ground once six piece colours are on screen.
 plus an inset top highlight and bottom shade — one rule gives every piece a bevel without
 seven gradients.
 
+**Drop preview** — two layers, both derived from the current piece: the columns it occupies get a
+5.5% white lane wash down the whole well, and the landing position is outlined in the piece colour
+at 55% opacity. The lane answers "which columns" at a glance, the ghost answers "exactly where" —
+neither adds a colour to the palette, so the preview can never be mistaken for locked blocks.
+
 **Playfield** — 10x16 grid, 2px gap, near-black interior, inset vignette and a single lifted
 drop shadow. `aspect-ratio:10/16` with `height:100%` so it fills the viewport height and never
 scrolls; the layout gives it whatever height is left and the width follows.
