@@ -98,7 +98,16 @@ tried in order until one fits.
 The swap on every move/rotate keeps the rotation index and box origin, and falls back through the
 same kick offsets, so a swap can never place a piece inside the stack.
 
-## 7. Game states
+## 7. Scoring and gravity
+
+Guideline values: 100 / 300 / 500 / 800 per 1–4 lines, multiplied by level; soft drop +1 per cell,
+hard drop +2. Level is `floor(lines / 10) + 1` and gravity is `1000 * 0.8^(level-1)` ms, floored at
+100ms.
+
+Cells store the piece index, and the I piece is index 0 — a falsy value, so a plain truthiness test
+silently skipped any row containing an I cell. Every occupancy check goes through `filled(i)`.
+
+## 8. Game states
 
 `menu` → `playing` ⇄ `paused` → `over`, plus `stats` reachable from menu/paused/over. Anything that
 is not `playing` blurs and desaturates the playfield, disables the four movement buttons and stops
@@ -106,20 +115,20 @@ the tick — the board underneath stays visible as context but is provably inert
 tap can never move a piece while a dialog is up. Stop ends the run and records it like a real game
 over; it is not a discard.
 
-## 8. Input
+## 9. Input
 
 Every action is a button; the keyboard and swipe gestures call `press(id)`, which flashes the
 button and invokes it. Arrows + WASD + space, R restart, P/Esc pause. On the playfield: swipe left/right to move,
 down to drop, tap to rotate.
 
-## 9. Sound
+## 10. Sound
 
 Every effect is synthesised in Web Audio at call time — soft sine blobs, 0.02–0.035 gain, under
 150ms — so there are no audio files to ship, load or cache-bust. Muting is a first-class control
 (button + `M`), persisted in `tetrisk.muted`, and the whole module is wrapped in try/catch so a
 blocked or missing AudioContext silently degrades instead of breaking play.
 
-## 10. Accessibility
+## 11. Accessibility
 
 - All seven piece colours pass 3:1 against the playfield interior.
 - Colour is never the only channel: the readout names the piece letter.
